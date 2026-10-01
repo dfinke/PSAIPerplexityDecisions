@@ -6,6 +6,8 @@
 
 A PowerShell module project for Perplexity's Decisions API.
 
+This is one of several PowerShell modules for working with decision APIs across providers. For other back ends, see [PSAIDecisions](https://github.com/dfinke/PSAIDecisions) and [Jev](https://github.com/dfinke/Jev).
+
 The API accepts a `state` value and named questions, then returns structured probabilities instead of generated text. Question types are `noul` (yes/no), `choice` (select from your options), and `score` (estimate a level on an ordered rubric).
 
 ## Quickstart

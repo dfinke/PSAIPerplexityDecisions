@@ -2,7 +2,7 @@
 
 Notable changes to PSAIPerplexityDecisions are recorded here.
 
-## Unreleased
+## [0.1.0] - 2026-10-01
 
 ### Added
 
@@ -14,4 +14,5 @@ Notable changes to PSAIPerplexityDecisions are recorded here.
 
 - Updated every example and the README quickstart to use the question helpers while preserving the Perplexity request and response contract.
 - Documented the helpers, direct-map invocation, timeout range, validation, and HTTP error behavior in the README.
+- Added links to related PowerShell decision modules for other providers.
 - Added offline Pester coverage for helper serialization and validation.
