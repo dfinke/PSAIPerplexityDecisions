@@ -10,13 +10,21 @@ This is one of several PowerShell modules for working with decision APIs across 
 
 The API accepts a `state` value and named questions, then returns structured probabilities instead of generated text. Question types are `noul` (yes/no), `choice` (select from your options), and `score` (estimate a level on an ordered rubric).
 
+## Installation
+
+Install the module from the PowerShell Gallery:
+
+```powershell
+Install-Module PSAIPerplexityDecisions -Scope CurrentUser
+```
+
 ## Quickstart
 
 Set `PERPLEXITY_API_KEY` in your environment, then import the module and call `Invoke-PerplexityDecision`. The module sends a JSON request to `POST https://api.perplexity.ai/v1/decisions` using the `pplx-decider-v1-27b` model.
 
 ```powershell
-# Import the module manifest from this repository.
-Import-Module ./PSAIPerplexityDecisions.psd1
+# Import the module installed from the PowerShell Gallery.
+Import-Module PSAIPerplexityDecisions
 
 # Define the state and three named questions for one Decisions API request.
 $state = @{
@@ -79,12 +87,6 @@ The module manifest is `PSAIPerplexityDecisions.psd1`; its public commands and p
 The scripts in `Examples` adapt the use cases in [dfinke/Jev's examples folder](https://github.com/dfinke/Jev/tree/main/Examples) to this module and the Perplexity request contract. They make live API requests when run, so set `PERPLEXITY_API_KEY` only when you intend to use the API. `DealDesk.ps1` and `Excel-IT-Queue.ps1` also require ImportExcel and input workbooks.
 
 Included examples are `QuickStart`, `RefundTriage`, `SecurityIncidentTriage`, `SemanticLogTriage`, `PageOnCall`, `NotesToActions`, `PowerShellCommandFinder`, `ReleaseNotes`, `StandupReport`, `Excel-IT-Queue`, and `DealDesk`.
-
-### Manual installation and publishing
-
-Run `InstallModule.ps1` to copy the module runtime into the first suitable path in `PSModulePath`, or specify a destination with `-FullPath`. It copies the manifest, module loader, and function folders without mirroring or deleting destination contents.
-
-To check packaging without publishing, set `NuGetApiKey` in your environment and run `./PublishToGallery.ps1 -WhatIf`. To publish manually to a registered repository, run `./PublishToGallery.ps1 -Repository PSGallery` and confirm the prompt. The script validates the module manifest and does not display the key.
 
 ## License
 

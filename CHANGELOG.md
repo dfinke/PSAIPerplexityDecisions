@@ -2,6 +2,12 @@
 
 Notable changes to PSAIPerplexityDecisions are recorded here.
 
+## Unreleased
+
+### Changed
+
+- Updated the README to install the published module from the PowerShell Gallery.
+
 ## [0.1.0] - 2026-10-01
 
 ### Added
