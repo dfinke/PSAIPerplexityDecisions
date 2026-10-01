@@ -7,6 +7,7 @@ Notable changes to PSAIPerplexityDecisions are recorded here.
 ### Changed
 
 - Updated the README to install the published module from the PowerShell Gallery.
+- Added a GitHub Actions workflow to run the offline Pester suite on pushes and pull requests to `main`.
 
 ## [0.1.0] - 2026-10-01
 
