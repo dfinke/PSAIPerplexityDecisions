@@ -30,21 +30,17 @@ else {
 }
 
 # Reuse one named choice question for each independent note.
-$questions = @{
-    category = @{
-        type         = 'choice'
-        instructions = 'Classify this note by its primary purpose. Choose action for a specific follow-up someone should do, decision for a settled or unresolved choice, or background for context that does not directly call for a task or decision.'
-        criteria     = [ordered]@{
+$question = New-PerplexityDecisionQuestion -Name category -Type Choice `
+    -Instructions 'Classify this note by its primary purpose. Choose action for a specific follow-up someone should do, decision for a settled or unresolved choice, or background for context that does not directly call for a task or decision.' `
+    -Criteria ([ordered]@{
             action     = 'A concrete task or follow-up for someone to do.'
             decision   = 'A choice or conclusion that has been made, or a choice still to make.'
             background = 'Context, an observation, or an idea with no direct task or decision.'
-        }
-    }
-}
+        })
 
 # Evaluate each note separately because each note is a different state.
 $results = foreach ($note in $notes) {
-    $answer = (Invoke-PerplexityDecision -State @{ Note = $note.Trim() } -Questions $questions).answers.category
+    $answer = (Invoke-PerplexityDecision -State @{ Note = $note.Trim() } -Question $question).answers.category
     [pscustomobject]@{ Category = $answer.choice; Confidence = [math]::Round([double]$answer.confidence, 2); Note = $note.Trim() }
 }
 

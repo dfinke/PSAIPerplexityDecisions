@@ -12,7 +12,7 @@
     CompatiblePSEditions = @('Desktop', 'Core')
 
     # Export only the supported public command.
-    FunctionsToExport = @('Invoke-PerplexityDecision')
+    FunctionsToExport = @('Invoke-PerplexityDecision', 'New-PerplexityDecisionQuestion', 'New-PerplexityYesNoQuestion')
     CmdletsToExport   = @()
     VariablesToExport = @()
     AliasesToExport   = @()
@@ -22,7 +22,10 @@
         'PSAIPerplexityDecisions.psd1'
         'PSAIPerplexityDecisions.psm1'
         'Public\Invoke-PerplexityDecision.ps1'
+        'Public\New-PerplexityDecisionQuestion.ps1'
+        'Public\New-PerplexityYesNoQuestion.ps1'
         'Private\Assert-PerplexityDecisionQuestions.ps1'
+        'Private\ConvertTo-PerplexityDecisionQuestionMap.ps1'
         'Private\New-PerplexityDecisionHttpErrorRecord.ps1'
         'Tests\PSAIPerplexityDecisions.Tests.ps1'
         'Examples\DealDesk.ps1'
@@ -39,6 +42,7 @@
         'InstallModule.ps1'
         'PublishToGallery.ps1'
         'README.md'
+        'CHANGELOG.md'
         'LICENSE'
         'assets\perplexity-decisions.png'
     )
@@ -50,7 +54,7 @@
             LicenseUri   = 'https://github.com/dfinke/PSAIPerplexityDecisions/blob/main/LICENSE'
             ProjectUri   = 'https://github.com/dfinke/PSAIPerplexityDecisions'
             IconUri      = 'https://raw.githubusercontent.com/dfinke/PSAIPerplexityDecisions/main/assets/perplexity-decisions.png'
-            ReleaseNotes = 'Initial release with Invoke-PerplexityDecision, local installation and manual Gallery publishing scripts, examples, and offline Pester tests.'
+            ReleaseNotes = 'Adds idiomatic question helpers and helper-object invocation while preserving Perplexity API-shaped -Questions input; updates examples and documentation and adds offline Pester coverage.'
         }
     }
 }

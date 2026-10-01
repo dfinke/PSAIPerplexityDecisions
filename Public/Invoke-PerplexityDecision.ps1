@@ -13,23 +13,19 @@ function Invoke-PerplexityDecision {
     The state object that provides context for the named questions.
 
     .PARAMETER Questions
-    A hashtable of named questions. Each question uses a documented type and
-    its documented instructions and, for choice or score, criteria.
+    A hashtable of questions already arranged as named Perplexity API fields.
+
+    .PARAMETER Question
+    One or more questions created with New-PerplexityDecisionQuestion or
+    New-PerplexityYesNoQuestion.
 
     .PARAMETER TimeoutSec
     The HTTP request timeout in seconds. The default is 30 seconds.
 
     .EXAMPLE
     $state = @{ title = 'Battery failure'; review = 'The battery stopped charging.' }
-    $questions = @{
-        defect = @{ type = 'noul'; instructions = 'Does this report a defect?' }
-        sentiment = @{
-            type = 'choice'
-            instructions = 'What is the overall sentiment?'
-            criteria = @{ positive = 'Mostly satisfied'; negative = 'Mostly dissatisfied' }
-        }
-    }
-    $result = Invoke-PerplexityDecision -State $state -Questions $questions
+    $question = New-PerplexityYesNoQuestion -Name defect -Question 'Does this report a defect?'
+    $result = Invoke-PerplexityDecision -State $state -Question $question
     $result.answers.defect.noul
 
     .OUTPUTS
@@ -38,17 +34,22 @@ function Invoke-PerplexityDecision {
     .NOTES
     This command makes a live API request. Tests should mock Invoke-RestMethod.
     #>
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'QuestionMap')]
     param (
         # Accept a JSON object as a PowerShell hashtable for the state.
         [Parameter(Mandatory = $true, Position = 0)]
         [ValidateNotNull()]
         [hashtable] $State,
 
-        # Accept the named question definitions as a PowerShell hashtable.
-        [Parameter(Mandatory = $true, Position = 1)]
+        # Accept a map already arranged with the exact Perplexity question fields.
+        [Parameter(Mandatory = $true, Position = 1, ParameterSetName = 'QuestionMap')]
         [ValidateNotNull()]
-        [hashtable] $Questions,
+        [System.Collections.IDictionary] $Questions,
+
+        # Accept one or more questions returned by the PowerShell helper functions.
+        [Parameter(Mandatory = $true, Position = 1, ParameterSetName = 'QuestionObjects')]
+        [ValidateNotNullOrEmpty()]
+        [object[]] $Question,
 
         # Bound the HTTP timeout to a practical range and default to 30 seconds.
         [Parameter()]
@@ -59,6 +60,11 @@ function Invoke-PerplexityDecision {
     # Require the documented API key without ever including its value in an error.
     if ([string]::IsNullOrWhiteSpace($env:PERPLEXITY_API_KEY)) {
         throw [System.InvalidOperationException]::new('PERPLEXITY_API_KEY is not set. Set it in the environment before calling this command.')
+    }
+
+    # Convert helper-created question objects to the named map expected by the API.
+    if ($PSCmdlet.ParameterSetName -eq 'QuestionObjects') {
+        $Questions = ConvertTo-PerplexityDecisionQuestionMap -Question $Question
     }
 
     # Validate all question definitions before creating or sending a request.

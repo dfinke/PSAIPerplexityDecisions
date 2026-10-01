@@ -11,29 +11,22 @@ $state = [ordered]@{
 }
 
 # Ask about refund intent, request category, and frustration in one API call.
-$questions = @{
-    refund_requested = @{
-        type         = 'noul'
-        instructions = 'Does ticket_message request a refund?'
-    }
-    request_type = @{
-        type         = 'choice'
-        instructions = 'What is the main request in ticket_message?'
-        criteria     = @{
+$questions = @(
+    New-PerplexityYesNoQuestion -Name refund_requested -Question 'Does ticket_message request a refund?'
+    New-PerplexityDecisionQuestion -Name request_type -Type Choice `
+        -Instructions 'What is the main request in ticket_message?' `
+        -Criteria @{
             refund      = 'The customer wants money returned.'
             rebooking   = 'The customer wants a replacement flight.'
             information = 'The customer is asking for information only.'
         }
-    }
-    frustration = @{
-        type         = 'score'
-        instructions = 'How frustrated does the customer appear in ticket_message?'
-        criteria     = @('Calm and neutral.', 'Concerned but civil.', 'Very angry or using strong language.')
-    }
-}
+    New-PerplexityDecisionQuestion -Name frustration -Type Score `
+        -Instructions 'How frustrated does the customer appear in ticket_message?' `
+        -Criteria @('Calm and neutral.', 'Concerned but civil.', 'Very angry or using strong language.')
+)
 
 # Send the request; set PERPLEXITY_API_KEY before running this example.
-$response = Invoke-PerplexityDecision -State $state -Questions $questions
+$response = Invoke-PerplexityDecision -State $state -Question $questions
 
 # Print the complete parsed response, including the probabilities in answers.
 $response | ConvertTo-Json -Depth 20

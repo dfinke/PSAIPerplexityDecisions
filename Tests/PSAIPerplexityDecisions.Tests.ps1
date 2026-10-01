@@ -56,6 +56,36 @@ Describe 'Invoke-PerplexityDecision' {
         }
     }
 
+    # Verify that PowerShell question helpers are converted to the same named wire map.
+    It 'converts helper question objects to the documented API question fields' {
+        $questions = @(
+            New-PerplexityYesNoQuestion -Name urgent -Question 'Does this need attention today?'
+            New-PerplexityDecisionQuestion -Name route -Type Choice `
+                -Instructions 'Which team should handle this?' `
+                -Criteria @{ support = 'Technical issue'; sales = 'Pricing or renewal issue' }
+        )
+
+        $null = Invoke-PerplexityDecision -State $testState -Question $questions
+
+        Should -Invoke Invoke-RestMethod -ModuleName PSAIPerplexityDecisions -Times 1 -ParameterFilter {
+            $payload = $Body | ConvertFrom-Json
+            $payload.questions.urgent.type -eq 'noul' -and
+            $payload.questions.urgent.instructions -eq 'Does this need attention today?' -and
+            $null -eq $payload.questions.urgent.criteria -and
+            $payload.questions.route.type -eq 'choice' -and
+            $payload.questions.route.criteria.support -eq 'Technical issue'
+        }
+    }
+
+    # Ensure the helper does not add Jev-only criteria to the Perplexity Noul contract.
+    It 'rejects criteria on a Noul question' {
+        {
+            New-PerplexityDecisionQuestion -Name binary -Type Noul `
+                -Instructions 'Is the issue urgent?' `
+                -Criteria @{ true = 'Urgent'; false = 'Not urgent' }
+        } | Should -Throw '*does not accept Criteria in the Perplexity contract*'
+    }
+
     # Reject unsupported question types before the mocked HTTP command is reached.
     It 'rejects an unsupported question type without making an HTTP request' {
         $invalidQuestions = @{ invalid = @{ type = 'text'; instructions = 'Unsupported type.' } }

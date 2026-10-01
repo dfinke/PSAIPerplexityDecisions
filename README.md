@@ -21,29 +21,23 @@ $state = @{
     title  = 'Battery died after two weeks'
     review = 'The headphones sound great, but the battery stopped charging after two weeks.'
 }
-$questions = @{
-    defect = @{
-        type         = 'noul'
-        instructions = 'Does the review report a product defect?'
-    }
-    sentiment = @{
-        type         = 'choice'
-        instructions = 'What is the overall sentiment of the review?'
-        criteria     = @{
+$questions = @(
+    New-PerplexityYesNoQuestion -Name defect `
+        -Question 'Does the review report a product defect?'
+    New-PerplexityDecisionQuestion -Name sentiment -Type Choice `
+        -Instructions 'What is the overall sentiment of the review?' `
+        -Criteria @{
             positive = 'Mostly satisfied'
             mixed    = 'Praise and complaints in one review'
             negative = 'Mostly dissatisfied'
         }
-    }
-    severity = @{
-        type         = 'score'
-        instructions = 'How severe is the reported problem?'
-        criteria     = @('Cosmetic', 'Inconvenient', 'Product unusable')
-    }
-}
+    New-PerplexityDecisionQuestion -Name severity -Type Score `
+        -Instructions 'How severe is the reported problem?' `
+        -Criteria @('Cosmetic', 'Inconvenient', 'Product unusable')
+)
 
 # Submit the state and questions; the command reads the key from the environment.
-$response = Invoke-PerplexityDecision -State $state -Questions $questions
+$response = Invoke-PerplexityDecision -State $state -Question $questions
 
 # Inspect the probabilities and typed answers returned for each named question.
 $response.answers.defect.noul
@@ -52,6 +46,12 @@ $response.answers.severity.score
 ```
 
 Use the `TimeoutSec` parameter to change the 30-second default. The command validates documented question types and criteria limits before sending the request. API keys are read from `PERPLEXITY_API_KEY` and are not included in command output.
+
+`New-PerplexityDecisionQuestion` creates a named `Noul`, `Choice`, or `Score` question. `New-PerplexityYesNoQuestion` is a convenience wrapper for a `Noul` question; its `-Question` text becomes the API's `instructions` value. Pass one or more helper results to `Invoke-PerplexityDecision -Question`; the command uses each helper's `-Name` as a key in the API's named `questions` map. The helpers return PowerShell objects and do not change Perplexity's request or response contract.
+
+For `Choice`, provide `-Criteria` as a hashtable that maps option names to descriptions. For `Score`, provide `-Criteria` as an ordered array of rubric levels. `Noul` uses instructions alone and does not accept criteria. If you already have questions in the API shape, pass the map directly with `-Questions` instead of using the helpers.
+
+`Invoke-PerplexityDecision` sends the documented `model`, `state`, and `questions` fields, reads its bearer token from `PERPLEXITY_API_KEY`, and returns the parsed API response. `-TimeoutSec` defaults to 30 seconds and accepts values from 1 through 600. Request validation errors and HTTP or transport failures are terminating errors; when available, an HTTP failure includes the status and response details without including request credentials.
 
 ## Response shape
 
@@ -70,7 +70,7 @@ Use the `TimeoutSec` parameter to change the 30-second default. The command vali
 
 ## Development
 
-The module manifest is `PSAIPerplexityDecisions.psd1`; its public commands and private helpers are loaded from `Public` and `Private`. Offline Pester tests mock `Invoke-RestMethod`; run them with `Invoke-Pester ./Tests`.
+The module manifest is `PSAIPerplexityDecisions.psd1`; its public commands and private helpers are loaded from `Public` and `Private`. Offline Pester tests mock `Invoke-RestMethod`; run them with `Invoke-Pester ./Tests`. See [CHANGELOG.md](CHANGELOG.md) for project changes.
 
 ### Examples
 

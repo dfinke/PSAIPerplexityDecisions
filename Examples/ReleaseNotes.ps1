@@ -24,22 +24,18 @@ $commits = foreach ($line in $commitLines) {
 }
 
 # Classify each subject into one of four release-note groups.
-$questions = @{
-    category = @{
-        type         = 'choice'
-        instructions = 'Classify this Git commit using only its subject. Choose breaking for an incompatible public change that likely requires users to change scripts or configuration; feature for a user-visible capability; fix for a user-visible defect correction; internal for tests, documentation, refactoring, or maintenance without user-visible behavior change.'
-        criteria     = [ordered]@{
+$question = New-PerplexityDecisionQuestion -Name category -Type Choice `
+    -Instructions 'Classify this Git commit using only its subject. Choose breaking for an incompatible public change that likely requires users to change scripts or configuration; feature for a user-visible capability; fix for a user-visible defect correction; internal for tests, documentation, refactoring, or maintenance without user-visible behavior change.' `
+    -Criteria ([ordered]@{
             breaking = 'An incompatible public change that may require existing users to update scripts or configuration.'
             feature  = 'A new user-visible capability or meaningful improvement.'
             fix      = 'A correction to a user-visible defect.'
             internal = 'Tests, documentation, refactoring, or maintenance without user-visible behavior change.'
-        }
-    }
-}
+        })
 
 # Evaluate each commit independently and retain the returned confidence and probabilities.
 $results = foreach ($commit in $commits) {
-    $answer = (Invoke-PerplexityDecision -State @{ Commit = $commit.Commit; Subject = $commit.Subject } -Questions $questions).answers.category
+    $answer = (Invoke-PerplexityDecision -State @{ Commit = $commit.Commit; Subject = $commit.Subject } -Question $question).answers.category
     [pscustomobject]@{ Category = $answer.choice; Confidence = [math]::Round([double]$answer.confidence, 2); Probabilities = $answer.probabilities; Commit = $commit.Commit; Subject = $commit.Subject }
 }
 

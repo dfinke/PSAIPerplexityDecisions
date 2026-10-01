@@ -16,7 +16,7 @@ function Assert-PerplexityDecisionQuestions {
         # Receive the named question set from the public command.
         [Parameter(Mandatory = $true)]
         [ValidateNotNull()]
-        [hashtable] $Questions
+        [System.Collections.IDictionary] $Questions
     )
 
     # Require no more than the documented 128 named questions per request.

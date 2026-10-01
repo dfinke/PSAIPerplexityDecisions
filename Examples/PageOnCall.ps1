@@ -5,12 +5,8 @@
 Import-Module (Join-Path $PSScriptRoot '..' 'PSAIPerplexityDecisions.psd1') -Force
 
 # Describe the paging policy as one named yes/no decision.
-$questions = @{
-    pageOnCall = @{
-        type         = 'noul'
-        instructions = 'Based on customer checkout impact, should the on-call engineer be paged now? Yes means checkout is unavailable or a substantial share of customers cannot purchase. No means purchases work normally; isolated card declines and unrelated dashboards do not count.'
-    }
-}
+$question = New-PerplexityYesNoQuestion -Name pageOnCall `
+    -Question 'Based on customer checkout impact, should the on-call engineer be paged now? Yes means checkout is unavailable or a substantial share of customers cannot purchase. No means purchases work normally; isolated card declines and unrelated dashboards do not count.'
 
 # Compare clear outages, normal operation, and incidents near the policy boundary.
 $states = @(
@@ -29,7 +25,7 @@ $states = @(
 # These example cutoffs are an application policy, not a setting or promise from the API.
 $results = foreach ($issue in $states) {
     # Send one request for each distinct incident state.
-    $answer = (Invoke-PerplexityDecision -State @{ issue = $issue } -Questions $questions).answers.pageOnCall
+    $answer = (Invoke-PerplexityDecision -State @{ issue = $issue } -Question $question).answers.pageOnCall
     $probability = [double] $answer.noul
 
     # Leave middle probability values for human review under this illustrative policy.

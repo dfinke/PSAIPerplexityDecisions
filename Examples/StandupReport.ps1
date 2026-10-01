@@ -38,22 +38,18 @@ $workingTree = @(git -C $RepositoryPath status --short)
 if ($LASTEXITCODE -ne 0) { throw "Could not read working-tree status from '$RepositoryPath'." }
 
 # Classify each commit by its likely standup outcome.
-$questions = @{
-    updateType = @{
-        type         = 'choice'
-        instructions = 'Classify the outcome described by this Git commit subject for a team standup. Choose delivery for a user-visible feature or behavior change, reliability for a bug fix or quality improvement, exploration for investigation or prototype, and internal for documentation, tests, refactoring, or build maintenance.'
-        criteria     = [ordered]@{
+$question = New-PerplexityDecisionQuestion -Name updateType -Type Choice `
+    -Instructions 'Classify the outcome described by this Git commit subject for a team standup. Choose delivery for a user-visible feature or behavior change, reliability for a bug fix or quality improvement, exploration for investigation or prototype, and internal for documentation, tests, refactoring, or build maintenance.' `
+    -Criteria ([ordered]@{
             delivery    = 'A user-visible feature or behavior change.'
             reliability = 'A bug fix or quality improvement.'
             exploration = 'An investigation, experiment, or prototype.'
             internal    = 'Documentation, tests, refactoring, or build maintenance.'
-        }
-    }
-}
+        })
 
 # Evaluate commit subjects individually because each one is a distinct state.
 $updates = foreach ($commit in $commits) {
-    $answer = (Invoke-PerplexityDecision -State @{ Commit = $commit.Commit; Subject = $commit.Subject } -Questions $questions).answers.updateType
+    $answer = (Invoke-PerplexityDecision -State @{ Commit = $commit.Commit; Subject = $commit.Subject } -Question $question).answers.updateType
     [pscustomobject]@{ Type = $answer.choice; Confidence = [math]::Round([double]$answer.confidence, 2); Commit = $commit.Commit; Subject = $commit.Subject }
 }
 

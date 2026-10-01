@@ -8,28 +8,21 @@
 $state = @{
     message = 'The customer is blocked by an outage and may cancel.'
 }
-$questions = @{
-    churn = @{
-        type         = 'noul'
-        instructions = 'Is this an active churn threat?'
-    }
-    route = @{
-        type         = 'choice'
-        instructions = 'Which team should handle this?'
-        criteria     = @{
+$questions = @(
+    New-PerplexityYesNoQuestion -Name churn -Question 'Is this an active churn threat?'
+    New-PerplexityDecisionQuestion -Name route -Type Choice `
+        -Instructions 'Which team should handle this?' `
+        -Criteria @{
             support = 'The issue needs technical support.'
             sales   = 'The issue concerns pricing or renewal.'
         }
-    }
-    urgency = @{
-        type         = 'score'
-        instructions = 'How urgent is this?'
-        criteria     = @('Can wait', 'This week', 'Today')
-    }
-}
+    New-PerplexityDecisionQuestion -Name urgency -Type Score `
+        -Instructions 'How urgent is this?' `
+        -Criteria @('Can wait', 'This week', 'Today')
+)
 
 # Send one live request; set PERPLEXITY_API_KEY before running this example.
-$result = Invoke-PerplexityDecision -State $state -Questions $questions
+$result = Invoke-PerplexityDecision -State $state -Question $questions
 
 # Keep the raw answer object available for callers and print a compact readable view.
 $result

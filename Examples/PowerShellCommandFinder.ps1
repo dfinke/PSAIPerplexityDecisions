@@ -47,18 +47,14 @@ foreach ($candidate in $candidates) {
 }
 
 # Ask the model to select one candidate; no suggested command is run by this script.
-$questions = @{
-    command = @{
-        type         = 'choice'
-        instructions = "Choose the single PowerShell command that best fits this task: $Task. Choose only from the supplied candidates. Prefer a command that directly accomplishes the task; do not infer that the command should be run."
-        criteria     = $criteria
-    }
-}
+$question = New-PerplexityDecisionQuestion -Name command -Type Choice `
+    -Instructions "Choose the single PowerShell command that best fits this task: $Task. Choose only from the supplied candidates. Prefer a command that directly accomplishes the task; do not infer that the command should be run." `
+    -Criteria $criteria
 $state = @{
     Task       = $Task
     Candidates = @($candidates | Select-Object Name, CommandType, Module, Synopsis)
 }
-$response = Invoke-PerplexityDecision -State $state -Questions $questions
+$response = Invoke-PerplexityDecision -State $state -Question $question
 
 # Verify the selected option against the offered local candidates before showing help.
 $answer = $response.answers.command

@@ -92,19 +92,15 @@ foreach ($option in $eligible) {
 $criteria['review'] = 'Pause for human review when none of the available moves fits the buyer context or sales goal.'
 
 # Ask Perplexity to choose among feasible moves using buyer context and sales goals.
-$questions = @{
-    move = @{
-        type = 'choice'
-        instructions = 'Choose the best next negotiation move for this deal from the supplied options. Use the buyer notes and sales goal. Prefer a move the buyer could realistically accept while preserving seller value. Budget and margin figures are calculated facts. Do not assume a longer term or more units is acceptable unless the buyer context supports it. Choose review if the supplied moves do not fit. Do not invent a different move.'
-        criteria = $criteria
-    }
-}
+$question = New-PerplexityDecisionQuestion -Name move -Type Choice `
+    -Instructions 'Choose the best next negotiation move for this deal from the supplied options. Use the buyer notes and sales goal. Prefer a move the buyer could realistically accept while preserving seller value. Budget and margin figures are calculated facts. Do not assume a longer term or more units is acceptable unless the buyer context supports it. Choose review if the supplied moves do not fit. Do not invent a different move.' `
+    -Criteria $criteria
 $state = @{
     Customer = [string]$deal.Customer; Product = [string]$deal.Product
     BuyerNotes = [string]$deal.BuyerNotes; SalesGoal = [string]$deal.SalesGoal
     TargetAnnualBudget = $budget; CurrentTermMonths = $termMonths; Options = $eligible
 }
-$response = Invoke-PerplexityDecision -State $state -Questions $questions
+$response = Invoke-PerplexityDecision -State $state -Question $question
 
 # Validate the selected identifier and join it back to the calculated option.
 $chosenCode = [string]$response.answers.move.choice

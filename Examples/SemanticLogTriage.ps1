@@ -17,26 +17,22 @@ param(
 Import-Module (Join-Path $PSScriptRoot '..' 'PSAIPerplexityDecisions.psd1') -Force
 
 # Ask about security risk and likely root-cause category together for each log line.
-$questions = @{
-    critical_security_risk = @{
-        type         = 'noul'
-        instructions = 'Is this log line evidence of a critical security risk or attack? Yes means breach, unauthorized access, credential attack, or privilege escalation. No means a normal operational message or non-security application failure.'
-    }
-    root_cause = @{
-        type         = 'choice'
-        instructions = 'What is the most likely root-cause category for this log line?'
-        criteria     = @{
+$questions = @(
+    New-PerplexityYesNoQuestion -Name critical_security_risk `
+        -Question 'Is this log line evidence of a critical security risk or attack? Yes means breach, unauthorized access, credential attack, or privilege escalation. No means a normal operational message or non-security application failure.'
+    New-PerplexityDecisionQuestion -Name root_cause -Type Choice `
+        -Instructions 'What is the most likely root-cause category for this log line?' `
+        -Criteria @{
             auth    = 'Authentication, credentials, identity, authorization, or access failure.'
             network = 'Network, DNS, connection, socket, timeout, or transport failure.'
             syntax  = 'Syntax, parsing, malformed configuration, or invalid format failure.'
             unknown = 'No clear root-cause category is supported by the line.'
         }
-    }
-}
+)
 
 # Evaluate each log line as its own state while using the same named questions.
 $results = foreach ($line in $LogLine) {
-    $response = Invoke-PerplexityDecision -State @{ log_line = $line } -Questions $questions
+    $response = Invoke-PerplexityDecision -State @{ log_line = $line } -Question $questions
     $security = $response.answers.critical_security_risk
     $cause = $response.answers.root_cause
     $risk = [math]::Round([double]$security.noul, 3)

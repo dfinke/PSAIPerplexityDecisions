@@ -15,31 +15,25 @@ $state = [ordered]@{
 }
 
 # Ask for authorization context, evidence strength, and an immediate response in one request.
-$questions = @{
-    unauthorized_activity = @{
-        type         = 'noul'
-        instructions = 'Does alert describe unauthorized activity given standing_authorizations and scheduled_maintenance? Yes means an authorization or maintenance window does not explain the activity. No means an approved authorization or maintenance window explains it.'
-    }
-    evidence_strength = @{
-        type         = 'score'
-        instructions = 'How strong is the evidence that the activity in alert is harmful, given the asset and incident records?'
-        criteria     = @('Weak: an unusual event with a plausible benign explanation.', 'Moderate: suspicious activity with incomplete supporting evidence.', 'Strong: a high impact asset and a clear malicious technique.')
-    }
-    response = @{
-        type         = 'choice'
-        instructions = 'What immediate response best fits this alert and the available records?'
-        criteria     = @{
+$questions = @(
+    New-PerplexityYesNoQuestion -Name unauthorized_activity `
+        -Question 'Does alert describe unauthorized activity given standing_authorizations and scheduled_maintenance? Yes means an authorization or maintenance window does not explain the activity. No means an approved authorization or maintenance window explains it.'
+    New-PerplexityDecisionQuestion -Name evidence_strength -Type Score `
+        -Instructions 'How strong is the evidence that the activity in alert is harmful, given the asset and incident records?' `
+        -Criteria @('Weak: an unusual event with a plausible benign explanation.', 'Moderate: suspicious activity with incomplete supporting evidence.', 'Strong: a high impact asset and a clear malicious technique.')
+    New-PerplexityDecisionQuestion -Name response -Type Choice `
+        -Instructions 'What immediate response best fits this alert and the available records?' `
+        -Criteria @{
             notify_user     = 'Notify the asset owner and continue monitoring.'
             escalate_tier2  = 'Queue the alert for a security analyst.'
             kill_process    = 'Stop the suspicious process while preserving the account.'
             disable_account = 'Disable the suspected account because identity misuse is likely.'
             escalate_urgent = 'Escalate urgently because the production impact is severe or expanding.'
         }
-    }
-}
+)
 
 # Send a single request containing the incident state and all three questions.
-$response = Invoke-PerplexityDecision -State $state -Questions $questions
+$response = Invoke-PerplexityDecision -State $state -Question $questions
 
 # Print the complete response so probability distributions remain available for review.
 $response | ConvertTo-Json -Depth 20

@@ -13,4 +13,4 @@ foreach ($script in $publicScripts) {
 }
 
 # Export only the supported public command from the module.
-Export-ModuleMember -Function Invoke-PerplexityDecision
+Export-ModuleMember -Function Invoke-PerplexityDecision, New-PerplexityDecisionQuestion, New-PerplexityYesNoQuestion
